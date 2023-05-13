@@ -13,6 +13,8 @@ import torch
 import torch.nn as nn
 import numpy as np
 import math
+import ipdb
+st = ipdb.set_trace
 from timm.models.vision_transformer import PatchEmbed, Attention, Mlp
 
 
@@ -229,7 +231,7 @@ class DiT(nn.Module):
         imgs = x.reshape(shape=(x.shape[0], c, h * p, h * p))
         return imgs
 
-    def forward(self, x, t, y):
+    def forward(self, x, t, y, context=None):
         """
         Forward pass of DiT.
         x: (N, C, H, W) tensor of spatial inputs (images or latent representations of images)
@@ -238,7 +240,13 @@ class DiT(nn.Module):
         """
         x = self.x_embedder(x) + self.pos_embed  # (N, T, D), where T = H * W / patch_size ** 2
         t = self.t_embedder(t)                   # (N, D)
-        y = self.y_embedder(y, self.training)    # (N, D)
+        # st()
+        
+        if context is not None:
+            y = context
+        else:
+            y = self.y_embedder(y, self.training)    # (N, D)
+        
         c = t + y                                # (N, D)
         for block in self.blocks:
             x = block(x, c)                      # (N, T, D)
